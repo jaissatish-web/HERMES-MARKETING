@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GATE HUB — Founder Control Center</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand"><span class="brand-mark">G</span><div><strong>GATE HUB</strong><small>GCC-MENTOR</small></div></div>
+    <nav>
+      <button class="nav-item active" data-view="overview">Overview</button>
+      <button class="nav-item" data-view="services">Services</button>
+      <button class="nav-item" data-view="providers">Providers & Models</button>
+      <button class="nav-item" data-view="permissions">Permissions</button>
+      <button class="nav-item" data-view="approvals">Approvals</button>
+      <button class="nav-item" data-view="budgets">Budgets</button>
+      <button class="nav-item" data-view="activity">Activity & Audit</button>
+      <button class="nav-item" data-view="health">System Health</button>
+    </nav>
+    <div class="sidebar-bottom">
+      <button id="pauseAll" class="danger-button">Pause autonomous activity</button>
+      <div class="prototype-note">Prototype mode — mock data only</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div><span class="eyebrow">Founder Control Center</span><h1 id="pageTitle">Overview</h1></div>
+      <div class="top-actions"><span class="status-dot"></span><span>System ready</span><button class="profile">Founder</button></div>
+    </header>
+
+    <section id="overview" class="view active-view">
+      <div class="hero-card"><div><span class="eyebrow">Current objective</span><h2>Build profitable organic growth for GCC-MENTOR</h2><p>GATE HUB controls services, providers, budgets, approvals and marketing engines from one place.</p></div><button class="primary" data-go="services">Manage services</button></div>
+      <div class="kpi-grid">
+        <div class="kpi"><span>Free users</span><strong>12,421</strong><em>+18.4%</em></div>
+        <div class="kpi"><span>Activated</span><strong>4,812</strong><em>+12.1%</em></div>
+        <div class="kpi"><span>Premium revenue</span><strong>₹184K</strong><em>+24.0%</em></div>
+        <div class="kpi"><span>Approvals waiting</span><strong>3</strong><em class="warn">Needs you</em></div>
+      </div>
+      <div class="grid-2">
+        <div class="panel"><div class="panel-title"><h3>Active services</h3><button data-go="services" class="text-button">View all</button></div><div id="serviceSummary"></div></div>
+        <div class="panel"><div class="panel-title"><h3>Needs your attention</h3><button data-go="approvals" class="text-button">Open approvals</button></div><div class="alert-list"><div class="alert"><span class="icon red">!</span><div><strong>3 approvals waiting</strong><p>Review provider/model or publishing actions.</p></div></div><div class="alert"><span class="icon amber">!</span><div><strong>1 service warning</strong><p>Video provider quota is approaching its configured limit.</p></div></div><div class="alert"><span class="icon green">✓</span><div><strong>Research engine healthy</strong><p>Last successful job completed 9 minutes ago.</p></div></div></div></div>
+      </div>
+    </section>
+
+    <section id="services" class="view">
+      <div class="section-head"><div><span class="eyebrow">Service registry</span><h2>Every capability in one place</h2></div><button class="primary" id="newService">+ Add service</button></div>
+      <div class="panel"><div class="table-wrap"><table><thead><tr><th>Service</th><th>Purpose</th><th>Provider</th><th>Model</th><th>Status</th><th>Mode</th><th></th></tr></thead><tbody id="serviceTable"></tbody></table></div></div>
+    </section>
+
+    <section id="providers" class="view"><div class="section-head"><div><span class="eyebrow">AI / API configuration</span><h2>Providers & models</h2></div><button class="primary" id="newProvider">+ Add provider</button></div><div class="cards-grid" id="providerCards"></div></section>
+
+    <section id="permissions" class="view"><div class="section-head"><div><span class="eyebrow">Safety & autonomy</span><h2>Permissions</h2></div></div><div class="panel"><p class="muted">Prototype policy matrix. Production controls will be enforced server-side, not only by the UI.</p><div id="permissionTable"></div></div></section>
+
+    <section id="approvals" class="view"><div class="section-head"><div><span class="eyebrow">Founder approval center</span><h2>Decisions waiting for you</h2></div></div><div class="stack" id="approvalList"></div></section>
+
+    <section id="budgets" class="view"><div class="section-head"><div><span class="eyebrow">Cost control</span><h2>Budgets & spending</h2></div></div><div class="cards-grid" id="budgetCards"></div></section>
+
+    <section id="activity" class="view"><div class="section-head"><div><span class="eyebrow">Audit trail</span><h2>Recent activity</h2></div></div><div class="panel"><div id="activityList"></div></div></section>
+
+    <section id="health" class="view"><div class="section-head"><div><span class="eyebrow">Operations</span><h2>System health</h2></div></div><div class="cards-grid" id="healthCards"></div></section>
+  </main>
+
+  <div id="modal" class="modal hidden"><div class="modal-card"><div class="modal-head"><h3 id="modalTitle">Add service</h3><button id="closeModal" class="close">×</button></div><form id="serviceForm"><label>Service name<input name="name" required placeholder="Blog Writing" /></label><label>Purpose<textarea name="purpose" required placeholder="SEO articles and career guides for GCC-MENTOR"></textarea></label><label>Category<select name="category"><option>LLM / Text</option><option>Research</option><option>SEO</option><option>Image</option><option>Video</option><option>Social</option><option>Analytics</option></select></label><label>Provider<input name="provider" placeholder="Provider name" /></label><label>Model<input name="model" placeholder="Model ID" /></label><label>API key / credential<input name="credential" placeholder="Stored securely in production" /></label><label>Approval mode<select name="approval"><option>Approval required</option><option>Execute within limits</option><option>Manual only</option></select></label><div class="form-actions"><button type="button" id="cancelModal" class="secondary">Cancel</button><button type="submit" class="primary">Save service</button></div><p class="small">Prototype only. Never enter real API keys here.</p></form></div></div>
+  <script src="./app.js"></script>
+</body>
+</html>
