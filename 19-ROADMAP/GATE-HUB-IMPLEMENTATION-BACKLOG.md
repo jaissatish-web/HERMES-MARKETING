@@ -94,9 +94,9 @@ Turn the current Founder Control Center prototype into a production-grade, secur
 - [ ] Provider/model
 - [ ] Action
 - [ ] Approval
-- [Result]
-- [Cost where available]
-- [Failure/rollback
+- [ ] Result
+- [ ] Cost where available
+- [ ] Failure/rollback record
 
 ## Phase 2 — Service Gateway
 
