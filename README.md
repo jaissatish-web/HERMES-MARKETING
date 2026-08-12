@@ -4,9 +4,7 @@
 
 This repository is the source of truth for **GATE HUB**, the modular control platform being built for GCC-MENTOR.
 
-Hermes is **optional** and is not a runtime dependency of GATE HUB.
-
-GATE HUB is designed first as a non-coder Founder control center for:
+GATE HUB is designed as a non-coder Founder control center for:
 
 - AI/LLM providers and models
 - API/service connections
@@ -27,7 +25,7 @@ GATE HUB is designed first as a non-coder Founder control center for:
 
 ## Current direction
 
-**GATE HUB first. Hermes later.**
+**GATE HUB first.**
 
 The system is service-first and API-first. Every major capability should be independently deployable and replaceable.
 
@@ -45,32 +43,37 @@ The system is service-first and API-first. Every major capability should be inde
 
 ## Current target stack
 
-The current research shortlist is documented in `08-RESEARCH/GATE-HUB-SOFTWARE-AUDIT-2026-08-12.md`.
+The research shortlist is documented in `08-RESEARCH/GATE-HUB-SOFTWARE-AUDIT-2026-08-12.md`.
 
 Provisional candidates include:
 
-- Appsmith for rapid admin-panel prototyping
-- Appwrite or a custom Postgres backend for core platform services
+- custom GATE HUB control UI for the final product
+- PostgreSQL for durable application data
 - Crawl4AI for controlled public-web research
 - Mixpost for social publishing
 - Ghost for owned publishing/content
 - InvokeAI for self-hosted image generation
 - PostHog for product analytics
-- Flowise/LangGraph only where a concrete AI workflow need exists
+- Flowise/LangGraph only where a concrete workflow need exists
 
 These are candidates, not blanket approvals. Exact versions, dependencies, model licenses, API terms and deployment boundaries must be verified before production use.
+
+## Current software
+
+```text
+apps/gate-hub-prototype/   Founder Control Center prototype
+apps/gate-hub-core/        Core API, database schema, and container definition
+```
 
 ## Repository structure
 
 ```text
-00-CONTEXT/         Project context and decisions
 01-BUSINESS/        Business/product direction
 02-MARKET/          Market intelligence
 03-MARKETING/       Marketing strategy
-04-AGENTS/          Optional Hermes/agent specifications
 05-WORKFLOWS/       Business and technical workflows
 06-ADMIN-CONTROL-CENTER/
-07-TECHNICAL/       GATE HUB architecture
+07-TECHNICAL/       GATE HUB architecture and implementation status
 08-RESEARCH/        Open-source and service audits
 09-TOOLS-AND-INTEGRATIONS/
 10-MARKETING-OPERATIONS/
@@ -84,48 +87,23 @@ These are candidates, not blanket approvals. Exact versions, dependencies, model
 18-TESTING/
 19-ROADMAP/
 20-DECISIONS/
+apps/gate-hub-core/
 apps/gate-hub-prototype/
 ```
 
-## First build milestone
+## Current implementation
 
-The first working milestone is a **Founder Control Center prototype** that demonstrates:
+The repository contains:
 
-1. service registry;
-2. provider/model registry;
-3. purpose and service descriptions;
-4. masked credential fields;
-5. agent/service permissions;
-6. budgets;
-7. approval mode;
-8. service health;
-9. tasks;
-10. alerts;
-11. audit activity.
+- Founder Control Center prototype
+- GATE HUB Core HTTP API slice
+- service/provider/model/approval/audit API contracts
+- emergency pause/resume API
+- PostgreSQL schema
+- local Docker Compose definition
+- implementation status and production gap tracking
 
-The prototype uses mock data only. It must not contain real production credentials or automatically connect external accounts.
-
-## Next implementation phases
-
-### Phase 1 — GATE HUB Core
-
-Build the real web application, authentication, database, service registry, provider/model registry, approval engine, budget controls, audit log and health system.
-
-### Phase 2 — First engines
-
-Research Engine → Content Engine → Social Engine → Analytics.
-
-### Phase 3 — Creative
-
-Image → Video → Voice.
-
-### Phase 4 — GCC-MENTOR integration
-
-Connect the product, free toolkit, campaigns, funnels and revenue metrics.
-
-### Phase 5 — Optional Hermes
-
-Hermes may later use the same service gateway as the Founder dashboard. GATE HUB remains fully functional without Hermes.
+See `07-TECHNICAL/IMPLEMENTATION-STATUS.md` for the exact state.
 
 ## Important legal rule
 
