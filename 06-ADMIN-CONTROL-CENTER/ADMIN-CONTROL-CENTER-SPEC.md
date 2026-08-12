@@ -1,10 +1,10 @@
-# Hermes Admin Control Center Specification
+# GATE HUB Admin Control Center Specification
 
-**Status:** Founder-approved product requirement
+**Status:** Active product requirement
 
 ## Goal
 
-Provide a beautiful, non-technical control center from which the Founder can understand, configure, approve, pause, and audit the entire Hermes marketing/growth/revenue system without editing code or using SSH for normal administration.
+Provide a beautiful, non-technical control center from which the Founder can understand, configure, approve, pause, and audit the entire GATE HUB platform without editing code or using SSH for normal administration.
 
 ## Core principle
 
@@ -16,52 +16,54 @@ The system must provide a simple Founder experience and an Advanced Control Cent
 
 1. Home / Founder Dashboard
 2. Approval Center
-3. Hermes Strategy
-4. Agent Manager
-5. AI Model Manager
-6. Prompt Manager
-7. API & Integration Manager
-8. Secret/API Key Vault
-9. Tool Registry
-10. Tasks & Workflows
-11. Campaigns
-12. Social Publishing
-13. Creative Studio
-14. Experiments
-15. Analytics
-16. Budgets & Cost Controls
-17. Notifications
-18. Audit Logs
-19. Security & Permissions
-20. System Health
+3. Service Manager
+4. AI Model Manager
+5. Prompt Manager
+6. API & Integration Manager
+7. Secret/API Key Vault
+8. Tool Registry
+9. Tasks & Workflows
+10. Campaigns
+11. Social Publishing
+12. Creative Studio
+13. Experiments
+14. Analytics
+15. Budgets & Cost Controls
+16. Notifications
+17. Audit Logs
+18. Security & Permissions
+19. System Health
+20. Deployment & Service Operations
 
 ## Founder Dashboard
 
 Show in plain language:
 
+- active services
+- service health
 - users
 - activation
 - conversion
 - retention
 - revenue
 - acquisition economics
-- current Hermes objective
-- current strategy
-- recommendations
+- current campaigns
 - approvals waiting
 - important alerts
-- agent status
-- AI/API health
+- API/model health
 - current spending and remaining budget
+- running jobs
+- failed jobs
 
-## Agent Manager
+## Service Manager
 
-For each agent show:
+For each engine/service show:
 
 - purpose
 - status
-- autonomy level
-- assigned model
+- version
+- host/deployment
+- provider/model
 - available tools
 - allowed actions
 - budget
@@ -70,19 +72,20 @@ For each agent show:
 - recent activity
 - errors
 - pause/resume control
+- run/test control
 
-## Autonomy levels
+## Service automation modes
 
-Recommended baseline levels:
+Recommended baseline modes:
 
-- Level 0 — Off
-- Level 1 — Read / Research
-- Level 2 — Recommend
-- Level 3 — Draft
-- Level 4 — Execute approved routine actions
-- Level 5 — Autonomous within explicit boundaries
+- Off
+- Read / Inspect
+- Recommend
+- Draft
+- Execute approved routine actions
+- Execute within explicit limits
 
-The system must support capability-level permissions rather than only agent-wide permissions.
+The system must support capability-level permissions rather than only service-wide permissions.
 
 ## AI Model Manager
 
@@ -91,15 +94,15 @@ Founder can manage:
 - AI providers
 - models
 - API connection status
-- model routing by task
+- model routing by service/task
 - model availability
 - cost limits
 - usage
 - latency/quality metadata
 - fallback models
-- testing
+- connection testing
 
-Do not hard-code Hermes to one AI provider.
+Providers and models must be configurable rather than hard-coded into individual services.
 
 ## Prompt Manager
 
@@ -114,7 +117,7 @@ Capabilities:
 - compare versions
 - activate version
 - rollback
-- attach prompt to agent/task/model
+- attach prompt to service/task/model
 - document purpose and expected behavior
 
 Production prompt changes must be auditable.
@@ -134,6 +137,7 @@ Manage external connections such as:
 - video generation
 - voice generation
 - design/media tools
+- CMS/publishing systems
 
 For each integration show:
 
@@ -141,14 +145,14 @@ For each integration show:
 - provider
 - capabilities
 - permissions
-- allowed agents
+- allowed services
 - rate limits
 - cost limits
 - test connection
 - disconnect/revoke
 - audit history
 
-New external platform connections always require Founder approval.
+New external platform connections require Founder approval.
 
 ## Secret/API Key Vault
 
@@ -158,14 +162,14 @@ The UI should show connection state and masked credentials, not raw secrets afte
 
 ## Tool Registry
 
-Every external capability available to agents should be represented as a registered tool with:
+Every external capability available to services should be represented as a registered tool with:
 
 - name
 - provider
 - purpose
 - version
 - capability list
-- allowed agents
+- allowed services
 - allowed actions
 - cost model
 - action limits
@@ -179,7 +183,7 @@ Provide:
 
 - global monthly budget
 - per-provider limits
-- per-agent limits
+- per-service limits
 - per-tool limits
 - per-action thresholds
 - campaign budgets
@@ -209,7 +213,7 @@ Founder actions:
 - Approve
 - Reject
 - Modify
-- Ask Hermes for more evidence
+- Request more evidence
 - Defer
 
 ## Social Publishing
@@ -238,7 +242,7 @@ Central queue for:
 - social graphics
 - voice/audio
 
-Every generated asset should retain metadata linking it to the campaign, agent, prompt/model, generation time, and approval state where appropriate.
+Every generated asset should retain metadata linking it to the campaign, service, prompt/model, generation time, and approval state where appropriate.
 
 ## Experiments
 
@@ -252,33 +256,33 @@ Show:
 - cost
 - results
 - confidence/evidence quality
-- Hermes conclusion
+- conclusion
 - next recommendation
 - Founder decision
 
 ## Analytics
 
-Combine marketing, product, conversion, retention, and revenue metrics. Hermes should explain significant changes in plain language and link recommendations to evidence.
+Combine marketing, product, conversion, retention, and revenue metrics. The platform should explain significant changes in plain language and link recommendations to evidence.
 
 ## Emergency controls
 
-A global **Pause All Autonomous Activity** control is mandatory.
+A global **Pause All Automated Activity** control is mandatory.
 
 Also support granular pause controls for:
 
-- Hermes
-- individual agents
+- individual services
 - social publishing
 - external communications
 - paid advertising
 - API spending
 - individual integrations
+- scheduled jobs
 
 Emergency controls must be fast, visible, audited, and fail-safe.
 
 ## Notification controls
 
-Hermes chooses notification channel dynamically according to urgency, while the dashboard remains the canonical history.
+The platform routes notifications according to urgency while the dashboard remains the canonical history.
 
 Founder can configure:
 
@@ -296,8 +300,7 @@ Record:
 - timestamp
 - action
 - reason
-- tool/provider
-- model
+- service/tool/provider/model
 - prompt/version where relevant
 - input/output metadata where safe
 - approval
@@ -314,7 +317,7 @@ Use understandable labels such as:
 
 - Creativity: Low / Balanced / High
 - Response length: Short / Medium / Long
-- Automation: Off / Recommend / Draft / Execute / Autonomous
+- Automation: Off / Recommend / Draft / Execute
 
 Provide contextual **Explain this** help for advanced settings.
 
