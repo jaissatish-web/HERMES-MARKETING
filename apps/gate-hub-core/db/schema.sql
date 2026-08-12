@@ -1,5 +1,34 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
+CREATE TABLE IF NOT EXISTS users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  password_hash TEXT,
+  role TEXT NOT NULL DEFAULT 'founder',
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS sessions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token_hash TEXT NOT NULL UNIQUE,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS credentials (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  provider TEXT NOT NULL,
+  encrypted_secret TEXT NOT NULL,
+  metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS services (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
@@ -7,7 +36,7 @@ CREATE TABLE IF NOT EXISTS services (
   category TEXT NOT NULL,
   provider_id UUID,
   model_id UUID,
-  credential_ref TEXT,
+  credential_ref UUID REFERENCES credentials(id) ON DELETE SET NULL,
   allowed_actions JSONB NOT NULL DEFAULT '[]'::jsonb,
   approval_mode TEXT NOT NULL DEFAULT 'approval_required',
   budget JSONB,
@@ -20,7 +49,6 @@ CREATE TABLE IF NOT EXISTS providers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   purpose TEXT NOT NULL,
-  credential_ref TEXT,
   status TEXT NOT NULL DEFAULT 'not_configured',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -43,8 +71,8 @@ CREATE TABLE IF NOT EXISTS approvals (
   estimated_cost JSONB,
   risk TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'pending',
-  requested_by TEXT NOT NULL DEFAULT 'system',
-  decided_by TEXT,
+  requested_by UUID REFERENCES users(id),
+  decided_by UUID REFERENCES users(id),
   decision_note TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   decided_at TIMESTAMPTZ
@@ -52,7 +80,7 @@ CREATE TABLE IF NOT EXISTS approvals (
 
 CREATE TABLE IF NOT EXISTS audit_log (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  actor TEXT NOT NULL,
+  actor UUID REFERENCES users(id),
   action TEXT NOT NULL,
   service_id UUID,
   provider_id UUID,
@@ -74,6 +102,20 @@ CREATE TABLE IF NOT EXISTS budgets (
   period_end DATE NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE(scope_type, scope_id, period_start, period_end)
+);
+
+CREATE TABLE IF NOT EXISTS jobs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  service_id UUID REFERENCES services(id) ON DELETE SET NULL,
+  action TEXT NOT NULL,
+  payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+  status TEXT NOT NULL DEFAULT 'queued',
+  result JSONB,
+  error TEXT,
+  requested_by UUID REFERENCES users(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  started_at TIMESTAMPTZ,
+  finished_at TIMESTAMPTZ
 );
 
 CREATE TABLE IF NOT EXISTS system_controls (
