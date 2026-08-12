@@ -1,205 +1,50 @@
 import http from 'node:http';
 import crypto from 'node:crypto';
+import { query, closeDb } from './db.js';
+import { ensureFounder, getUser, login, unauthorized, requireRole } from './auth.js';
+import { createCredential } from './secrets.js';
 
 const PORT = Number(process.env.PORT || 8787);
 const HOST = process.env.HOST || '0.0.0.0';
+const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:3000';
+const MAX_BODY = Number(process.env.MAX_BODY_BYTES || 1_000_000);
+const jsonHeaders = { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'access-control-allow-origin': CORS_ORIGIN, 'access-control-allow-credentials': 'true', 'access-control-allow-methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS', 'access-control-allow-headers': 'content-type,authorization' };
+function send(res,status,body){const payload=JSON.stringify(body);res.writeHead(status,{...jsonHeaders,'content-length':Buffer.byteLength(payload)});res.end(payload)}
+function ok(res,data,status=200){return send(res,status,{data})}
+function fail(res,status,error){return send(res,status,{error})}
+async function body(req){let raw='';for await(const chunk of req){raw+=chunk;if(raw.length>MAX_BODY)throw Object.assign(new Error('Request body too large'),{status:413})}if(!raw)return{};try{return JSON.parse(raw)}catch{throw Object.assign(new Error('Invalid JSON'),{status:400})}}
+async function audit(actor,action,detail={},refs={}){await query(`INSERT INTO audit_log(actor,action,service_id,provider_id,model_id,approval_id,request_id,detail) VALUES($1,$2,$3,$4,$5,$6,$7,$8)`,[actor||null,action,refs.serviceId||null,refs.providerId||null,refs.modelId||null,refs.approvalId||null,refs.requestId||null,detail])}
+async function paused(){const r=await query("SELECT value FROM system_controls WHERE key='automation_paused'");return r.rows[0]?.value===true||r.rows[0]?.value==='true'}
+async function auth(req,res){const user=await getUser(req);if(!user){unauthorized(res);return null}return user}
+async function seedFounder(){if(process.env.FOUNDER_EMAIL)await ensureFounder({email:process.env.FOUNDER_EMAIL,name:process.env.FOUNDER_NAME||'Founder',password:process.env.FOUNDER_PASSWORD})}
+const server=http.createServer(async(req,res)=>{const requestId=crypto.randomUUID();res.setHeader('x-request-id',requestId);try{
+if(req.method==='OPTIONS'){res.writeHead(204,jsonHeaders);return res.end()}
+const path=new URL(req.url,`http://${HOST}:${PORT}`).pathname;
+if(path==='/health'&&req.method==='GET')return send(res,200,{ok:true,service:'gate-hub-core',now:new Date().toISOString()});
+if(path==='/api/v1/auth/setup'&&req.method==='POST'){const d=await body(req);if(!d.email||!d.name||!d.password)return fail(res,400,'email, name and password are required');return ok(res,await ensureFounder(d),201)}
+if(path==='/api/v1/auth/login'&&req.method==='POST'){const d=await body(req);if(!d.email||!d.password)return fail(res,400,'email and password are required');const result=await login(d.email,d.password);if(!result)return fail(res,401,'Invalid email or password');res.setHeader('set-cookie',result.cookie);await audit(result.user.id,'auth.login',{requestId},{requestId});return ok(res,result.user)}
+if(path==='/api/v1/auth/me'&&req.method==='GET'){const u=await auth(req,res);if(!u)return;return ok(res,u)}
+if(path==='/api/v1/status'&&req.method==='GET'){const u=await auth(req,res);if(!u)return;const r=await query(`SELECT (SELECT COUNT(*) FROM services) services,(SELECT COUNT(*) FROM providers) providers,(SELECT COUNT(*) FROM models) models,(SELECT COUNT(*) FROM approvals WHERE status='pending') approvals,(SELECT COUNT(*) FROM jobs WHERE status IN ('queued','running')) jobs`);return ok(res,{paused:await paused(),counts:r.rows[0],user:{name:u.name,role:u.role}})}
+if(path==='/api/v1/services'&&req.method==='GET'){const u=await auth(req,res);if(!u)return;return ok(res,(await query(`SELECT s.*,p.name provider_name,m.name model_name FROM services s LEFT JOIN providers p ON p.id=s.provider_id LEFT JOIN models m ON m.id=s.model_id ORDER BY s.created_at DESC`)).rows)}
+if(path==='/api/v1/services'&&req.method==='POST'){const u=await auth(req,res);if(!u)return;const d=await body(req);if(!d.name||!d.purpose||!d.category)return fail(res,400,'name, purpose and category are required');const r=await query(`INSERT INTO services(name,purpose,category,provider_id,model_id,credential_ref,allowed_actions,approval_mode,budget,status) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,'setup') RETURNING *`,[d.name,d.purpose,d.category,d.providerId||null,d.modelId||null,d.credentialRef||null,JSON.stringify(d.allowedActions||[]),d.approvalMode||'approval_required',d.budget||null]);await audit(u.id,'service.created',{name:d.name,requestId},{serviceId:r.rows[0].id,requestId});return ok(res,r.rows[0],201)}
+if(path.startsWith('/api/v1/services/')&&req.method==='PATCH'){const u=await auth(req,res);if(!u)return;const id=path.split('/').pop(),d=await body(req);const r=await query(`UPDATE services SET name=COALESCE($2,name),purpose=COALESCE($3,purpose),category=COALESCE($4,category),provider_id=COALESCE($5,provider_id),model_id=COALESCE($6,model_id),credential_ref=COALESCE($7,credential_ref),allowed_actions=COALESCE($8,allowed_actions),approval_mode=COALESCE($9,approval_mode),budget=COALESCE($10,budget),status=COALESCE($11,status),updated_at=NOW() WHERE id=$1 RETURNING *`,[id,d.name,d.purpose,d.category,d.providerId,d.modelId,d.credentialRef,d.allowedActions?JSON.stringify(d.allowedActions):null,d.approvalMode,d.budget,d.status]);if(!r.rows[0])return fail(res,404,'Service not found');await audit(u.id,'service.updated',{requestId},{serviceId:id,requestId});return ok(res,r.rows[0])}
+if(path==='/api/v1/providers'&&req.method==='GET'){const u=await auth(req,res);if(!u)return;return ok(res,(await query('SELECT * FROM providers ORDER BY created_at DESC')).rows)}
+if(path==='/api/v1/providers'&&req.method==='POST'){const u=await auth(req,res);if(!u)return;const d=await body(req);if(!d.name||!d.purpose)return fail(res,400,'name and purpose are required');const r=await query('INSERT INTO providers(name,purpose,status) VALUES($1,$2,$3) RETURNING *',[d.name,d.purpose,'not_configured']);await audit(u.id,'provider.created',{name:d.name,requestId},{providerId:r.rows[0].id,requestId});return ok(res,r.rows[0],201)}
+if(path==='/api/v1/models'&&req.method==='GET'){const u=await auth(req,res);if(!u)return;return ok(res,(await query('SELECT m.*,p.name provider_name FROM models m JOIN providers p ON p.id=m.provider_id ORDER BY m.created_at DESC')).rows)}
+if(path==='/api/v1/models'&&req.method==='POST'){const u=await auth(req,res);if(!u)return;const d=await body(req);if(!d.providerId||!d.name)return fail(res,400,'providerId and name are required');const r=await query('INSERT INTO models(provider_id,name,capabilities,cost_metadata) VALUES($1,$2,$3,$4) RETURNING *',[d.providerId,d.name,JSON.stringify(d.capabilities||[]),d.costMetadata||null]);await audit(u.id,'model.created',{name:d.name,requestId},{modelId:r.rows[0].id,providerId:d.providerId,requestId});return ok(res,r.rows[0],201)}
+if(path==='/api/v1/credentials'&&req.method==='POST'){const u=await auth(req,res);if(!u)return;if(!requireRole(u,['founder','admin']))return fail(res,403,'Forbidden');const d=await body(req);const c=await createCredential(d);await audit(u.id,'credential.created',{name:c.name,provider:c.provider,requestId},{requestId});return ok(res,c,201)}
+if(path==='/api/v1/approvals'&&req.method==='GET'){const u=await auth(req,res);if(!u)return;return ok(res,(await query('SELECT * FROM approvals ORDER BY created_at DESC')).rows)}
+if(path==='/api/v1/approvals'&&req.method==='POST'){const u=await auth(req,res);if(!u)return;const d=await body(req);if(!d.action||!d.risk)return fail(res,400,'action and risk are required');const r=await query(`INSERT INTO approvals(action,reason,evidence,estimated_cost,risk,requested_by) VALUES($1,$2,$3,$4,$5,$6) RETURNING *`,[d.action,d.reason||'',JSON.stringify(d.evidence||[]),d.estimatedCost||null,d.risk,u.id]);await audit(u.id,'approval.created',{action:d.action,risk:d.risk,requestId},{approvalId:r.rows[0].id,requestId});return ok(res,r.rows[0],201)}
+if(path.startsWith('/api/v1/approvals/')&&req.method==='POST'){const u=await auth(req,res);if(!u)return;if(!requireRole(u,['founder','admin']))return fail(res,403,'Founder/admin approval required');const id=path.split('/')[4],d=await body(req);if(!['approved','rejected','deferred'].includes(d.status))return fail(res,400,'Invalid approval status');const r=await query("UPDATE approvals SET status=$2,decided_by=$3,decision_note=$4,decided_at=NOW() WHERE id=$1 AND status='pending' RETURNING *",[id,d.status,u.id,d.note||null]);if(!r.rows[0])return fail(res,404,'Pending approval not found');await audit(u.id,`approval.${d.status}`,{note:d.note||'',requestId},{approvalId:id,requestId});return ok(res,r.rows[0])}
+if(path==='/api/v1/budgets'&&req.method==='GET'){const u=await auth(req,res);if(!u)return;return ok(res,(await query('SELECT * FROM budgets ORDER BY created_at DESC')).rows)}
+if(path==='/api/v1/budgets'&&req.method==='POST'){const u=await auth(req,res);if(!u)return;const d=await body(req);if(!d.scopeType||!d.periodStart||!d.periodEnd)return fail(res,400,'scopeType, periodStart and periodEnd are required');const r=await query(`INSERT INTO budgets(scope_type,scope_id,currency,limit_amount,used_amount,period_start,period_end) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *`,[d.scopeType,d.scopeId||null,d.currency||'USD',Number(d.limitAmount||0),Number(d.usedAmount||0),d.periodStart,d.periodEnd]);await audit(u.id,'budget.created',{scopeType:d.scopeType,limitAmount:d.limitAmount,requestId},{requestId});return ok(res,r.rows[0],201)}
+if(path==='/api/v1/jobs'&&req.method==='GET'){const u=await auth(req,res);if(!u)return;return ok(res,(await query('SELECT * FROM jobs ORDER BY created_at DESC LIMIT 200')).rows)}
+if(path==='/api/v1/jobs'&&req.method==='POST'){const u=await auth(req,res);if(!u)return;if(await paused())return fail(res,423,'Automated activity is paused');const d=await body(req);if(!d.action)return fail(res,400,'action is required');const r=await query('INSERT INTO jobs(service_id,action,payload,requested_by) VALUES($1,$2,$3,$4) RETURNING *',[d.serviceId||null,d.action,JSON.stringify(d.payload||{}),u.id]);await audit(u.id,'job.queued',{action:d.action,requestId},{serviceId:d.serviceId||null,requestId});return ok(res,r.rows[0],201)}
+if(path==='/api/v1/control/pause'&&req.method==='POST'){const u=await auth(req,res);if(!u)return;if(!requireRole(u,['founder','admin']))return fail(res,403,'Founder/admin control required');await query("UPDATE system_controls SET value='true'::jsonb,updated_at=NOW() WHERE key='automation_paused'");await audit(u.id,'system.paused',{requestId},{requestId});return ok(res,{paused:true})}
+if(path==='/api/v1/control/resume'&&req.method==='POST'){const u=await auth(req,res);if(!u)return;if(!requireRole(u,['founder','admin']))return fail(res,403,'Founder/admin control required');await query("UPDATE system_controls SET value='false'::jsonb,updated_at=NOW() WHERE key='automation_paused'");await audit(u.id,'system.resumed',{requestId},{requestId});return ok(res,{paused:false})}
+if(path==='/api/v1/audit'&&req.method==='GET'){const u=await auth(req,res);if(!u)return;return ok(res,(await query('SELECT * FROM audit_log ORDER BY created_at DESC LIMIT 500')).rows)}
+return fail(res,404,'Route not found')
+}catch(e){console.error(e);return fail(res,e.status||500,e.status?e.message:'Internal server error')}})
 
-// First production slice: an API contract and in-memory store.
-// Replace the store with PostgreSQL in the next slice; do not use this
-// in-memory mode for production data.
-const state = {
-  services: [],
-  providers: [],
-  models: [],
-  approvals: [],
-  audit: [],
-  budgets: { global: { limit: 0, used: 0, currency: 'USD' } },
-  paused: false
-};
-
-function json(res, status, body) {
-  const payload = JSON.stringify(body);
-  res.writeHead(status, {
-    'content-type': 'application/json; charset=utf-8',
-    'content-length': Buffer.byteLength(payload),
-    'cache-control': 'no-store'
-  });
-  res.end(payload);
-}
-
-function audit(action, detail = {}) {
-  state.audit.unshift({
-    id: crypto.randomUUID(),
-    at: new Date().toISOString(),
-    actor: 'system',
-    action,
-    detail
-  });
-  state.audit = state.audit.slice(0, 500);
-}
-
-function readBody(req) {
-  return new Promise((resolve, reject) => {
-    let raw = '';
-    req.on('data', chunk => {
-      raw += chunk;
-      if (raw.length > 1_000_000) req.destroy();
-    });
-    req.on('end', () => {
-      if (!raw) return resolve({});
-      try { resolve(JSON.parse(raw)); }
-      catch { reject(new Error('Invalid JSON')); }
-    });
-    req.on('error', reject);
-  });
-}
-
-function routeKey(req) {
-  return `${req.method} ${new URL(req.url, `http://${HOST}:${PORT}`).pathname}`;
-}
-
-const server = http.createServer(async (req, res) => {
-  try {
-    const url = new URL(req.url, `http://${HOST}:${PORT}`);
-
-    if (req.method === 'OPTIONS') {
-      res.writeHead(204, {
-        'access-control-allow-origin': '*',
-        'access-control-allow-methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
-        'access-control-allow-headers': 'content-type,authorization'
-      });
-      return res.end();
-    }
-
-    if (url.pathname === '/health') {
-      return json(res, 200, { ok: true, service: 'gate-hub-core', paused: state.paused, now: new Date().toISOString() });
-    }
-
-    if (url.pathname === '/api/v1/status' && req.method === 'GET') {
-      return json(res, 200, {
-        ok: true,
-        paused: state.paused,
-        counts: {
-          services: state.services.length,
-          providers: state.providers.length,
-          models: state.models.length,
-          approvals: state.approvals.length,
-          audit: state.audit.length
-        }
-      });
-    }
-
-    if (url.pathname === '/api/v1/services' && req.method === 'GET') {
-      return json(res, 200, { data: state.services });
-    }
-
-    if (url.pathname === '/api/v1/services' && req.method === 'POST') {
-      const body = await readBody(req);
-      if (!body.name || !body.purpose) return json(res, 400, { error: 'name and purpose are required' });
-      const service = {
-        id: crypto.randomUUID(),
-        name: String(body.name),
-        purpose: String(body.purpose),
-        category: String(body.category || 'Other'),
-        providerId: body.providerId || null,
-        modelId: body.modelId || null,
-        credentialRef: body.credentialRef || null,
-        allowedActions: Array.isArray(body.allowedActions) ? body.allowedActions : [],
-        approvalMode: body.approvalMode || 'approval_required',
-        budget: body.budget || null,
-        status: 'setup',
-        createdAt: new Date().toISOString()
-      };
-      state.services.push(service);
-      audit('service.created', { serviceId: service.id, name: service.name });
-      return json(res, 201, { data: service });
-    }
-
-    if (url.pathname === '/api/v1/providers' && req.method === 'GET') {
-      return json(res, 200, { data: state.providers });
-    }
-
-    if (url.pathname === '/api/v1/providers' && req.method === 'POST') {
-      const body = await readBody(req);
-      if (!body.name || !body.purpose) return json(res, 400, { error: 'name and purpose are required' });
-      const provider = {
-        id: crypto.randomUUID(),
-        name: String(body.name),
-        purpose: String(body.purpose),
-        credentialRef: body.credentialRef || null,
-        status: 'not_configured',
-        createdAt: new Date().toISOString()
-      };
-      state.providers.push(provider);
-      audit('provider.created', { providerId: provider.id, name: provider.name });
-      return json(res, 201, { data: provider });
-    }
-
-    if (url.pathname === '/api/v1/models' && req.method === 'GET') {
-      return json(res, 200, { data: state.models });
-    }
-
-    if (url.pathname === '/api/v1/models' && req.method === 'POST') {
-      const body = await readBody(req);
-      if (!body.providerId || !body.name) return json(res, 400, { error: 'providerId and name are required' });
-      const model = {
-        id: crypto.randomUUID(),
-        providerId: String(body.providerId),
-        name: String(body.name),
-        capabilities: Array.isArray(body.capabilities) ? body.capabilities : [],
-        costMetadata: body.costMetadata || null,
-        createdAt: new Date().toISOString()
-      };
-      state.models.push(model);
-      audit('model.created', { modelId: model.id, name: model.name });
-      return json(res, 201, { data: model });
-    }
-
-    if (url.pathname === '/api/v1/approvals' && req.method === 'GET') {
-      return json(res, 200, { data: state.approvals });
-    }
-
-    if (url.pathname === '/api/v1/approvals' && req.method === 'POST') {
-      const body = await readBody(req);
-      if (!body.action || !body.risk) return json(res, 400, { error: 'action and risk are required' });
-      const approval = {
-        id: crypto.randomUUID(),
-        action: String(body.action),
-        reason: body.reason || '',
-        evidence: body.evidence || [],
-        estimatedCost: body.estimatedCost || null,
-        risk: String(body.risk),
-        status: 'pending',
-        createdAt: new Date().toISOString()
-      };
-      state.approvals.push(approval);
-      audit('approval.created', { approvalId: approval.id, risk: approval.risk });
-      return json(res, 201, { data: approval });
-    }
-
-    if (url.pathname === '/api/v1/control/pause' && req.method === 'POST') {
-      state.paused = true;
-      audit('system.paused');
-      return json(res, 200, { ok: true, paused: true });
-    }
-
-    if (url.pathname === '/api/v1/control/resume' && req.method === 'POST') {
-      state.paused = false;
-      audit('system.resumed');
-      return json(res, 200, { ok: true, paused: false });
-    }
-
-    if (url.pathname === '/api/v1/audit' && req.method === 'GET') {
-      return json(res, 200, { data: state.audit });
-    }
-
-    json(res, 404, { error: 'Route not found', route: routeKey(req) });
-  } catch (error) {
-    json(res, 500, { error: 'Internal server error' });
-  }
-});
-
-server.listen(PORT, HOST, () => {
-  console.log(`GATE HUB Core listening on http://${HOST}:${PORT}`);
-  audit('server.started', { port: PORT });
-});
+async function start(){await query('SELECT 1');await seedFounder();server.listen(PORT,HOST,()=>console.log(`GATE HUB Core listening on http://${HOST}:${PORT}`))}
+process.on('SIGTERM',async()=>{await closeDb();process.exit(0)});process.on('SIGINT',async()=>{await closeDb();process.exit(0)});start().catch(e=>{console.error('GATE HUB startup failed:',e);process.exit(1)})
