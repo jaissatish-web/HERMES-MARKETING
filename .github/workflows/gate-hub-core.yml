@@ -1,0 +1,27 @@
+name: GATE HUB Core CI
+
+on:
+  push:
+    paths:
+      - 'apps/gate-hub-core/**'
+      - '.github/workflows/gate-hub-core.yml'
+  pull_request:
+    paths:
+      - 'apps/gate-hub-core/**'
+      - '.github/workflows/gate-hub-core.yml'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/gate-hub-core
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: apps/gate-hub-core/package-lock.json
+      - run: npm install --ignore-scripts
+      - run: npm run check
