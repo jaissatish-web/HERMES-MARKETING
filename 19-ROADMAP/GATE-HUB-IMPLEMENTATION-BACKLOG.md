@@ -164,17 +164,6 @@ Turn the current Founder Control Center prototype into a production-grade, secur
 - [ ] Referral events
 - [ ] GCC market segmentation
 
-## Phase 6 — Optional Hermes
-
-- [ ] Hermes adapter to Service Gateway
-- [ ] Read-only mode
-- [ ] Recommend mode
-- [ ] Draft mode
-- [ ] Controlled execution
-- [ ] Founder approval integration
-
-Hermes must remain optional. GATE HUB services must continue to operate directly through the Founder control center.
-
 ## Acceptance criteria for production MVP
 
 A non-technical Founder must be able to:
