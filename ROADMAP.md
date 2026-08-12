@@ -4,6 +4,8 @@
 
 Build a beautiful, founder-controlled GCC-MENTOR SaaS that manages marketing, growth and revenue operations through configurable AI/API services. The Founder should be able to understand and control the system without coding.
 
+GCC-MENTOR is the customer-facing career service for job seekers in India and the Middle East, especially people targeting GCC/Middle East employment. GATE HUB is the private founder control center used to build, market and operate it.
+
 ## Phase 0 — Foundation
 
 - [x] GitHub repository and source-of-truth workflow
@@ -29,16 +31,22 @@ Build a beautiful, founder-controlled GCC-MENTOR SaaS that manages marketing, gr
 - [x] Plain-language provider description
 - [x] Website/API reference field
 - [x] Safe archive guard when a provider is linked to a service
+- [x] Starter provider catalog seeded for common AI/search/image/video providers
 - [ ] Production deployment verification
 - [ ] Live application test
 
-### 2.2 Secure Credential Vault
-- [ ] Add credential
-- [ ] Secure secret handling
-- [ ] Provider association
-- [ ] Connection test
-- [ ] Connected/disconnected status
-- [ ] Never expose full secret after save
+### 2.2 Secure Credential Vault — IN PROGRESS
+- [x] Add credential UI
+- [x] Provider association
+- [x] Server-side encryption boundary
+- [x] Browser cannot SELECT credential ciphertext
+- [x] Metadata-only credential listing
+- [x] Never expose full secret after save
+- [ ] Configure encryption key as Supabase Edge Function secret
+- [ ] Connection test against provider
+- [ ] Connected/disconnected health status
+- [ ] Production deployment verification
+- [ ] Live application test
 
 ### 2.3 Model Manager
 - [ ] Add model
@@ -116,9 +124,9 @@ Build a beautiful, founder-controlled GCC-MENTOR SaaS that manages marketing, gr
 
 **CURRENT:** Phase 2 — AI Stack Control
 
-**ACTIVE:** Provider Manager implementation and production verification
+**ACTIVE:** Secure Credential Vault implementation and Provider Manager production verification
 
-**THEN:** Credential Vault → Model Manager → Service Manager wiring → Governance → Execution Gateway.
+**THEN:** Model Manager → Service Manager wiring → Governance → Execution Gateway.
 
 ## Progress rule
 
