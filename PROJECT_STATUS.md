@@ -8,7 +8,7 @@
 
 The original Hermes autonomous-agent plan has been retired as the primary architecture. GATE HUB is now the product: a founder-friendly SaaS control center that orchestrates marketing, growth and revenue services through configurable providers, models and secure credentials.
 
-Hermes-specific autonomous-agent options should not be reintroduced unless explicitly requested later.
+GCC-MENTOR is the customer-facing career service for job seekers in India and the Middle East, especially people targeting GCC/Middle East employment. GATE HUB is the private founder operating/control center used to build, market and operate that SaaS.
 
 ## Current infrastructure
 
@@ -29,7 +29,7 @@ Supabase Auth + Database
   ↓
 Provider Manager
   ↓
-Credential Vault
+Secure Credential Vault
   ↓
 Model Manager
   ↓
@@ -40,6 +40,8 @@ Approval + Budget Controls
 Service Gateway
   ↓
 Research / Content / Social / Image / Video / Analytics
+  ↓
+GCC-MENTOR growth + customer product
 ```
 
 ## Current build state
@@ -54,8 +56,8 @@ Research / Content / Social / Image / Video / Analytics
 | Founder dashboard UI | IN PROGRESS | Premium control-center direction established |
 | Progress/Roadmap UI | IN PROGRESS | Must reflect real implementation status |
 | Service Manager | IN PROGRESS | UI exists; provider/model/credential relationships still need full wiring |
-| Provider Manager | IN PROGRESS | Founder page, real Supabase CRUD, enable/disable and safe archive behavior implemented on feature branch; production verification pending |
-| Credential Vault | NEXT | Secure API credential handling; never expose secrets in browser |
+| Provider Manager | IN PROGRESS | Founder page and real Supabase CRUD are implemented; production verification is still required |
+| Credential Vault | IN PROGRESS | Secure server-side encryption path and metadata-only browser listing implemented; encryption secret still needs one-time Supabase configuration and live verification |
 | Model Manager | NEXT | Provider-linked model configuration |
 | Service ↔ Provider ↔ Model ↔ Credential wiring | NOT STARTED | Must follow the setup sequence |
 | Approval controls | NOT STARTED | Founder approval / automatic / draft-only |
@@ -71,7 +73,7 @@ Research / Content / Social / Image / Video / Analytics
 
 ## Immediate next milestone
 
-**Finish production verification of Provider Manager → Secure Credential Vault → Model Manager → connect all three to Service Manager.**
+**Finish Credential Vault production verification → Model Manager → connect Provider + Credential + Model to Service Manager.**
 
 The non-coder setup experience should be wizard-like and simple:
 
@@ -82,6 +84,16 @@ The non-coder setup experience should be wizard-like and simple:
 5. Set budget + approval mode.
 6. Test connection.
 7. Mark service ready.
+
+## Credential security boundary
+
+- API secrets are never stored in frontend code or `NEXT_PUBLIC_*` variables.
+- Browser clients do not receive SELECT access to the credential table.
+- The protected Supabase Edge Function authenticates the Founder/admin, encrypts the secret server-side with AES-GCM, and stores only ciphertext plus safe metadata.
+- The normal Credential Vault listing exposes only connection metadata and the last four characters of the secret.
+- The raw secret is not displayed again by the Vault UI.
+- The encryption key must exist only as a Supabase Edge Function secret named `GATE_HUB_CREDENTIAL_ENCRYPTION_KEY`.
+- Service records will reference credential IDs, never raw API keys.
 
 ## Security rules
 
