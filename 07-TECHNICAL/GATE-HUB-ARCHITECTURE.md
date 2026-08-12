@@ -4,8 +4,6 @@
 
 Build a modular software platform that gives a non-coder Founder one control center for research, SEO, content, creative generation, publishing, analytics, campaigns, providers, models, APIs, budgets, permissions, and deployments.
 
-Hermes is optional and must not be a runtime dependency.
-
 ## Design principles
 
 1. Service-first.
@@ -104,7 +102,7 @@ Each service can declare:
 - provider
 - model
 - credential reference
-- allowed agents/services
+- allowed services/callers
 - allowed actions
 - limits
 - budget
@@ -217,15 +215,3 @@ Do not grant external engines broad database access when an API or scoped data v
 - cost limits
 - backups
 - restore testing
-
-## Hermes compatibility
-
-If Hermes is added later, it should call the same service gateway as the Founder dashboard.
-
-```text
-Founder -> GATE HUB -> Service Gateway -> Engines
-Hermes  -> Service Gateway -> Engines
-GCC-MENTOR -> Service Gateway -> Engines
-```
-
-This keeps Hermes optional and prevents vendor/agent lock-in.
