@@ -4,115 +4,70 @@
 **Repository:** `jaissatish-web/HERMES-MARKETING`
 **Product direction:** GATE HUB / GCC-MENTOR SaaS
 
-## Current direction
+## Product
 
-The original Hermes autonomous-agent plan has been retired as the primary architecture. GATE HUB is now the product: a founder-friendly SaaS control center that orchestrates marketing, growth and revenue services through configurable providers, models and secure credentials.
+GATE HUB is the private founder control center for building, marketing and operating GCC-MENTOR. GCC-MENTOR is the customer-facing career service for job seekers in India and the Middle East, especially people targeting GCC/Middle East employment.
 
-Hermes-specific autonomous-agent options should not be reintroduced unless explicitly requested later.
+## Infrastructure
 
-## Current infrastructure
-
-- GitHub: connected and used as the source of truth.
-- Vercel: connected for deployment.
-- Supabase: connected and used as the database/auth foundation.
-- VPS: not required at this stage.
-- Google OAuth: intentionally deferred. Current authentication is email/password through Supabase.
-
-## Current product architecture
-
-```text
-Founder
-  ↓
-GATE HUB UI
-  ↓
-Supabase Auth + Database
-  ↓
-Provider Manager
-  ↓
-Credential Vault
-  ↓
-Model Manager
-  ↓
-Service Manager
-  ↓
-Approval + Budget Controls
-  ↓
-Service Gateway
-  ↓
-Research / Content / Social / Image / Video / Analytics
-```
+- GitHub: source of truth
+- Vercel: connected; current feature branch deployment is passing
+- Supabase: active and healthy
+- VPS: not required
+- Authentication: Supabase email/password
+- Google OAuth: deferred
 
 ## Current build state
 
-| Area | Status | Notes |
-|---|---|---|
-| Repository foundation | COMPLETE | GitHub is source of truth |
-| Vercel deployment | WORKING | Deployment is connected to `main`; latest main commit has a successful Vercel check |
-| Supabase connection | COMPLETE | GATE-HUB project is active and healthy |
-| Email/password authentication | COMPLETE | Founder login is the current method |
-| Google OAuth | DEFERRED | Add later; no Google client credentials required now |
-| Founder dashboard UI | IN PROGRESS | Premium control-center direction established |
-| Progress/Roadmap UI | IN PROGRESS | Must reflect real implementation status |
-| Service Manager | IN PROGRESS | UI exists; provider/model/credential relationships still need full wiring |
-| Provider Manager | IN PROGRESS | Founder page, real Supabase CRUD, enable/disable and safe archive behavior implemented on feature branch; production verification pending |
-| Credential Vault | NEXT | Secure API credential handling; never expose secrets in browser |
-| Model Manager | NEXT | Provider-linked model configuration |
-| Service ↔ Provider ↔ Model ↔ Credential wiring | NOT STARTED | Must follow the setup sequence |
-| Approval controls | NOT STARTED | Founder approval / automatic / draft-only |
-| Budget controls | NOT STARTED | Limits and usage tracking |
-| Service Gateway | NOT STARTED | Common execution layer |
-| Research engine | NOT STARTED | Later integration |
-| Content engine | NOT STARTED | Later integration |
-| Social publishing | NOT STARTED | Later integration |
-| Image generation | NOT STARTED | Later integration |
-| Video generation | NOT STARTED | Later integration |
-| Analytics/revenue | NOT STARTED | Later integration |
-| Full GCC-MENTOR SaaS | NOT STARTED | Final target |
+| Area | Status |
+|---|---|
+| Repository foundation | COMPLETE |
+| Vercel deployment connection | WORKING |
+| Supabase connection | COMPLETE |
+| Email/password authentication | COMPLETE |
+| Founder dashboard | IN PROGRESS |
+| Progress/Roadmap UI | IN PROGRESS |
+| Provider Manager | IN PROGRESS — CRUD and starter catalog implemented; live verification pending |
+| Secure Credential Vault | IN PROGRESS — encrypted server-side path implemented and Edge Function deployed; live credential test pending |
+| Model Manager | IN PROGRESS — provider-linked CRUD UI and database foundation implemented; live verification pending |
+| Service Manager | IN PROGRESS — foundation exists; provider/model/credential wiring next |
+| Governance | NOT STARTED |
+| Service Gateway | NOT STARTED |
+| Marketing engines | NOT STARTED |
+| Growth/revenue | NOT STARTED |
+| Full GCC-MENTOR SaaS | NOT STARTED |
 
-## Immediate next milestone
+## Architecture
 
-**Finish production verification of Provider Manager → Secure Credential Vault → Model Manager → connect all three to Service Manager.**
+Founder → GATE HUB UI → Supabase Auth + Database → Provider Manager → Secure Credential Vault → Model Manager → Service Manager → Approval + Budget Controls → Service Gateway → Research / Content / Social / Image / Video / Analytics → GCC-MENTOR
 
-The non-coder setup experience should be wizard-like and simple:
+## Credential security boundary
 
-1. Add provider — who supplies the AI/API?
-2. Add credential — securely connect the provider.
-3. Select/add model — which AI engine should be used?
+- API secrets are never stored in frontend code or `NEXT_PUBLIC_*` variables.
+- Normal browser clients do not receive credential ciphertext.
+- The protected Supabase Edge Function authenticates founder/admin users and encrypts the submitted secret server-side with AES-GCM.
+- The normal credential listing exposes only safe metadata and the last four characters.
+- The encryption key exists only as the Supabase Edge Function secret `GATE_HUB_CREDENTIAL_ENCRYPTION_KEY`.
+- Services will reference credential IDs, never raw API keys.
+
+## Provider catalog
+
+Starter providers seeded include OpenAI, Anthropic, Google AI, DeepSeek, OpenRouter, Perplexity, Mistral, Groq, Cohere, Replicate, Together AI, Fireworks AI, xAI, Hugging Face, Runway, ElevenLabs, Stability AI, Cloudflare, Microsoft Azure OpenAI and Meta. Additional providers can be added from the UI.
+
+## Non-coder setup flow
+
+1. Add provider — who supplies the capability?
+2. Add credential — securely connect it.
+3. Add/select model — which AI engine?
 4. Create service — what job should GATE HUB perform?
-5. Set budget + approval mode.
-6. Test connection.
-7. Mark service ready.
-
-## Security rules
-
-- Never store API secrets in frontend code.
-- Never expose service-role or secret keys through `NEXT_PUBLIC_*` variables.
-- API credentials belong in the secure Credential Vault, not directly in service records.
-- Do not add a fake/plaintext API-key field to the Service Manager just for appearance.
-- Founder/admin access must be controlled; Google accounts should not automatically become administrators.
-
-## UI/UX rules
-
-GATE HUB should feel like a premium SaaS operating system, not a static template. Every module should use the same design system and be understandable to a non-coder. Technical concepts should have plain-language explanations.
-
-Examples:
-
-- Provider = the company that supplies the AI/API.
-- Model = the specific AI engine.
-- Credential = the secure connection to the provider.
-- Service = the job/capability GATE HUB performs.
-- Approval mode = whether GATE HUB asks the Founder before acting.
+5. Set budget and approval mode.
+6. Test the service.
+7. Mark it ready.
 
 ## Definition of done
 
-A feature is **COMPLETE** only when:
+A feature is complete only after UI, database, permissions, production build, Vercel deployment, live testing and roadmap/status updates all pass.
 
-1. The UI works.
-2. The database relationship works.
-3. Authentication/permissions are respected.
-4. The production build passes.
-5. Vercel deployment is successful.
-6. The feature is tested in the live app.
-7. The Progress/Roadmap status is updated.
+## Immediate next milestone
 
-Do not mark features complete merely because code was committed.
+Finish live verification of Credential Vault and Model Manager, then wire Provider + Model + Credential into Service Manager.

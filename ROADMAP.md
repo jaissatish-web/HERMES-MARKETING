@@ -1,125 +1,110 @@
 # GATE HUB — Master Roadmap
 
 ## North-star goal
-
-Build a beautiful, founder-controlled GCC-MENTOR SaaS that manages marketing, growth and revenue operations through configurable AI/API services. The Founder should be able to understand and control the system without coding.
+Build a beautiful, founder-controlled GATE HUB for marketing, growth and revenue operations behind GCC-MENTOR, the career service for job seekers in India and the Middle East targeting GCC employment.
 
 ## Phase 0 — Foundation
-
-- [x] GitHub repository and source-of-truth workflow
-- [x] Vercel deployment connection
-- [x] Supabase project/database connection
-- [x] Next.js application foundation
+- [x] GitHub source of truth
+- [x] Vercel deployment
+- [x] Supabase connection
+- [x] Next.js foundation
 
 ## Phase 1 — Access + Founder Control Center
-
-- [x] Supabase email/password authentication
-- [ ] Google OAuth (deferred until explicitly requested)
+- [x] Email/password authentication
+- [ ] Google OAuth (deferred)
 - [x] Founder dashboard shell
 - [ ] Fully functional sidebar modules
-- [x] Visual build-progress/roadmap concept
+- [x] Progress/Roadmap concept
 
 ## Phase 2 — AI Stack Control (CURRENT)
 
-### 2.1 Provider Manager — IN PROGRESS
-- [x] Add provider UI and real Supabase insert
-- [x] Edit provider
-- [x] Enable/disable provider
-- [x] Provider type/category
-- [x] Plain-language provider description
-- [x] Website/API reference field
-- [x] Safe archive guard when a provider is linked to a service
-- [ ] Production deployment verification
-- [ ] Live application test
+### Provider Manager — IN PROGRESS
+- [x] CRUD UI
+- [x] Enable/disable
+- [x] Provider type, purpose and website
+- [x] Safe archive guard
+- [x] Starter provider catalog
+- [ ] Production/live verification
 
-### 2.2 Secure Credential Vault
-- [ ] Add credential
-- [ ] Secure secret handling
-- [ ] Provider association
-- [ ] Connection test
-- [ ] Connected/disconnected status
-- [ ] Never expose full secret after save
+### Secure Credential Vault — IN PROGRESS
+- [x] Credential UI
+- [x] Provider association
+- [x] Server-side AES-GCM encryption
+- [x] Browser cannot read ciphertext
+- [x] Metadata-only listing
+- [x] Full secret never shown after save
+- [x] Supabase Edge Function deployed with JWT verification
+- [ ] Provider connection test
+- [ ] Live credential-save verification
+- [ ] Health status
 
-### 2.3 Model Manager
-- [ ] Add model
-- [ ] Associate model with provider
-- [ ] Purpose/description
-- [ ] Enable/disable model
-- [ ] Default/backup model support
+### Model Manager — IN PROGRESS
+- [x] Add model UI
+- [x] Provider association
+- [x] Purpose/capabilities
+- [x] Enable/disable
+- [x] Default/backup flags
+- [ ] Production/live verification
 
-### 2.4 Service Manager
-- [x] Service list UI foundation
-- [x] Add Service UI foundation
-- [ ] Provider selector backed by real Provider Manager
+### Service Manager — NEXT
+- [x] UI foundation
+- [ ] Provider selector
 - [ ] Model selector filtered by provider
-- [ ] Credential selector backed by Credential Vault
-- [ ] Save complete service relationship
-- [ ] Edit service
-- [ ] Enable/disable service
-- [ ] Budget configuration
-- [ ] Approval configuration
+- [ ] Credential selector
+- [ ] Complete relationship save/edit
+- [ ] Enable/disable
+- [ ] Budget
+- [ ] Approval mode
 - [ ] Test service
 
 ## Phase 3 — Governance
-
 - [ ] Founder approval engine
-- [ ] Automatic / Founder approval / Draft-only modes
+- [ ] Automatic / approval / draft-only modes
 - [ ] Budget limits
 - [ ] Usage tracking
 - [ ] Audit log
 - [ ] Permission model
-- [ ] Safety/confirmation rules for high-impact actions
 
 ## Phase 4 — Execution Layer
-
-- [ ] Common service gateway
+- [ ] Service Gateway
 - [ ] Provider/model routing
-- [ ] Credential injection only server-side
-- [ ] Retry/fallback handling
+- [ ] Server-only credential injection
+- [ ] Retry/fallback
 - [ ] Usage/cost capture
-- [ ] Job queue/status model
+- [ ] Job queue
 
 ## Phase 5 — Marketing Engines
-
-- [ ] Content research
-- [ ] Competitor research
-- [ ] SEO research
-- [ ] Blog/content writing
-- [ ] Social post generation
-- [ ] Social scheduling/publishing
+- [ ] Research
+- [ ] Competitor/SEO research
+- [ ] Content/blog writing
+- [ ] Social generation/publishing
 - [ ] Image generation
 - [ ] Video generation
-- [ ] Email/communication workflows
+- [ ] Email workflows
 
 ## Phase 6 — Growth + Revenue
-
-- [ ] Acquisition tracking
-- [ ] Conversion tracking
-- [ ] Retention workflows
+- [ ] Acquisition
+- [ ] Conversion
+- [ ] Retention
 - [ ] Revenue dashboard
-- [ ] Campaign performance
-- [ ] Analytics integrations
+- [ ] Campaign analytics
 
 ## Phase 7 — GCC-MENTOR SaaS
-
 - [ ] Customer/workspace model
 - [ ] Multi-tenant permissions
-- [ ] Onboarding wizard
-- [ ] Subscription/billing architecture
+- [ ] Onboarding
+- [ ] Billing
 - [ ] Usage limits
-- [ ] Customer-facing dashboards
-- [ ] Production security review
-- [ ] Legal/licensing review for integrated/open-source components
+- [ ] Customer dashboards
+- [ ] Security/legal review
 - [ ] Production launch
 
 ## Current position
-
 **CURRENT:** Phase 2 — AI Stack Control
 
-**ACTIVE:** Provider Manager implementation and production verification
+**ACTIVE:** Credential Vault + Model Manager; Provider Manager verification.
 
-**THEN:** Credential Vault → Model Manager → Service Manager wiring → Governance → Execution Gateway.
+**NEXT:** Service Manager wiring → Governance → Service Gateway → Marketing → Growth → GCC-MENTOR SaaS.
 
 ## Progress rule
-
-Update this file whenever a milestone materially changes. A checkbox is only marked complete after the feature is tested and the production deployment succeeds.
+A checkbox becomes complete only after UI, database, permissions, production build, Vercel deployment and live testing all pass.
