@@ -47,14 +47,14 @@ Research / Content / Social / Image / Video / Analytics
 | Area | Status | Notes |
 |---|---|---|
 | Repository foundation | COMPLETE | GitHub is source of truth |
-| Vercel deployment | WORKING | Deployment is connected to `main` |
-| Supabase connection | COMPLETE | Project connected |
+| Vercel deployment | WORKING | Deployment is connected to `main`; latest main commit has a successful Vercel check |
+| Supabase connection | COMPLETE | GATE-HUB project is active and healthy |
 | Email/password authentication | COMPLETE | Founder login is the current method |
 | Google OAuth | DEFERRED | Add later; no Google client credentials required now |
 | Founder dashboard UI | IN PROGRESS | Premium control-center direction established |
 | Progress/Roadmap UI | IN PROGRESS | Must reflect real implementation status |
 | Service Manager | IN PROGRESS | UI exists; provider/model/credential relationships still need full wiring |
-| Provider Manager | NEXT | Build before declaring Service Manager complete |
+| Provider Manager | IN PROGRESS | Founder page, real Supabase CRUD, enable/disable and safe archive behavior implemented on feature branch; production verification pending |
 | Credential Vault | NEXT | Secure API credential handling; never expose secrets in browser |
 | Model Manager | NEXT | Provider-linked model configuration |
 | Service ↔ Provider ↔ Model ↔ Credential wiring | NOT STARTED | Must follow the setup sequence |
@@ -71,7 +71,7 @@ Research / Content / Social / Image / Video / Analytics
 
 ## Immediate next milestone
 
-**Provider Manager → Secure Credential Vault → Model Manager → connect all three to Service Manager.**
+**Finish production verification of Provider Manager → Secure Credential Vault → Model Manager → connect all three to Service Manager.**
 
 The non-coder setup experience should be wizard-like and simple:
 

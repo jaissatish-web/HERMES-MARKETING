@@ -21,12 +21,16 @@ Build a beautiful, founder-controlled GCC-MENTOR SaaS that manages marketing, gr
 
 ## Phase 2 — AI Stack Control (CURRENT)
 
-### 2.1 Provider Manager — NEXT
-- [ ] Add provider
-- [ ] Edit provider
-- [ ] Enable/disable provider
-- [ ] Provider type/category
-- [ ] Plain-language provider description
+### 2.1 Provider Manager — IN PROGRESS
+- [x] Add provider UI and real Supabase insert
+- [x] Edit provider
+- [x] Enable/disable provider
+- [x] Provider type/category
+- [x] Plain-language provider description
+- [x] Website/API reference field
+- [x] Safe archive guard when a provider is linked to a service
+- [ ] Production deployment verification
+- [ ] Live application test
 
 ### 2.2 Secure Credential Vault
 - [ ] Add credential
@@ -112,9 +116,9 @@ Build a beautiful, founder-controlled GCC-MENTOR SaaS that manages marketing, gr
 
 **CURRENT:** Phase 2 — AI Stack Control
 
-**NEXT:** Provider Manager
+**ACTIVE:** Provider Manager implementation and production verification
 
-**Then:** Credential Vault → Model Manager → Service Manager wiring → Governance → Execution Gateway.
+**THEN:** Credential Vault → Model Manager → Service Manager wiring → Governance → Execution Gateway.
 
 ## Progress rule
 
